@@ -1,0 +1,7 @@
+<h1>Your Cart</h1>
+
+{% for item in cart %}
+    <p>{{ item[0] }} - Quantity: {{ item[1] }}</p>
+{% endfor %}
+
+<a href="/customer">Back</a>

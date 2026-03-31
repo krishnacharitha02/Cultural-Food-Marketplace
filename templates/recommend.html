@@ -1,0 +1,7 @@
+<h1>Recommend Products</h1>
+
+{% for r in recs %}
+    <p>{{ r[0] }} (Popularity: {{ r[1] }})</p>
+(% endfor %)
+
+<a href="/customer">Back</a>
