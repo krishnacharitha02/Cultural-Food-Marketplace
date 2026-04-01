@@ -75,9 +75,9 @@ create table Order_Item (order_item_id INT auto_increment primary key, order_id 
  select * from Cart_Item;
  
  #ADVANCED QUERIES 
- #Filter by Dietary
+ #Filtering by Dietary
  select p.prod_name, d.tag_name from Product p join Product_Dietary pd ON p.product_id = pd.product_id join Dietary d ON pd.tag_id = d.tag_id where d.tag_name = 'Vegetarian';
- #Filter by cuisine
+ #Filtering by cuisine
  select p.prod_name, c.cuisine_name from Product p join Cuisine_Type c on p.cuisine_type_id = c.cuisine_type_id where c.cuisine_name = 'Indian';
  #Trending popular products
  select p.prod_name, SUM(oi.quantity) as total_orders from Order_Item oi join Product p on oi.product_id = p.product_id group by p.product_id order by total_orders desc;
