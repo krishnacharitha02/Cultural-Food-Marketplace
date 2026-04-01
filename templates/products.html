@@ -6,3 +6,14 @@
 
 <a href="/customer">Back</a>
 
+{% for p in products %}
+    <p>{{ p[3] }} - ${{ p[5] }} </p>
+
+    <form action="/add_to_cart" method="POST">
+        <input type="hidden" name="product_id" value="{{ p[0] }}">
+        <input type="number" name="quantity" placeholder="Qty">
+        <button type="submit">Add to Cart</button>
+    </form>
+
+{% endfor %}
+
