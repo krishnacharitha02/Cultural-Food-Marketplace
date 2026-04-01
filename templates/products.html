@@ -1,9 +1,5 @@
 <h1>Products</h1>
 
-{% for p in products %}
-    <p>{{ p[3] }} - ${{ p[5]}}</p>
-{% endfor %}
-
 <a href="/customer">Back</a>
 
 {% for p in products %}
@@ -14,6 +10,8 @@
         <input type="number" name="quantity" placeholder="Qty">
         <button type="submit">Add to Cart</button>
     </form>
+
+    <a href="/review/{{ p[0] }}">Leave a Review</a><br><br>
 
 {% endfor %}
 

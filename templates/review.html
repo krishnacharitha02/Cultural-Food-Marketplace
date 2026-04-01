@@ -1,0 +1,15 @@
+<h1>Leave a Review</h1>
+
+<form action="/add_review" method="POST">
+    <input type="hidden" name="product_id" value="{{ product_id}}">
+
+    <label>Rating (1-5):</label><br>
+    <input type="number" name="rating" min="1" max="5" placeholder="1 to 5"><br><br>
+
+    <label>Comment:</label>
+    <textarea name="comments" placeholder="Write your review here..."></textarea><br>
+<br>
+    <button type="submit">Submit Review</button>
+</form>
+
+<a href="/products">Back</a>
