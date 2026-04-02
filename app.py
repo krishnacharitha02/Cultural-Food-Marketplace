@@ -29,7 +29,7 @@ def get_products():
     conn.close()
     return products
 
-def get_cart():
+def get_cart(user_id):
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -259,7 +259,7 @@ def order_confirm(order_id):
     cursor.close()
     conn.close()
 
-    return render_template("order_html", order_items=order_items, total=round(total, 2))
+    return render_template("order.html", order_items=order_items, total=round(total, 2))
 
 if __name__ == "__main__":
     app.run(debug=True)
