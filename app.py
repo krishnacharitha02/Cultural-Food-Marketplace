@@ -41,7 +41,7 @@ def get_cart(user_id):
     WHERE c.user_id = %s
     """
 
-    cursor.execute(query)
+    cursor.execute(query, (user_id))
     cart = cursor.fetchall()
     cursor.close()
     conn.close()
