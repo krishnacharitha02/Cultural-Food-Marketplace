@@ -34,10 +34,11 @@ def get_cart():
     cursor = conn.cursor()
 
     query = """
-    SELECT p.prod_name, c.quantity
-    FROM Cart_Item c
-    JOIN Product p
-        ON c.product_id = p.product_id
+    SELECT p.prod_name, ci.quantity
+    FROM Cart_Item ci
+    JOIN Product p ON ci.product_id = p.product_id
+    JOIN Cart c On ci.cart_id = c.cart_id
+    WHERE c.user_id = %s
     """
 
     cursor.execute(query)
@@ -58,7 +59,8 @@ def products():
 
 @app.route("/cart")
 def cart():
-    cart = get_cart()
+    user_id = 1
+    cart = get_cart(user_id)
     return render_template("cart.html", cart=cart)
 
 @app.route("/customer")
@@ -71,7 +73,23 @@ def vendor():
 
 @app.route("/recommend")
 def recommend():
-    return render_template("recommend.html")
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT p.prod_name, SUM(oi.quantity) AS total_orders
+        FROM Order_Item oi
+        JOIN Product p ON oi.product_id = p.product_id
+        GROUP BY p.product_id, p.prod_name
+        ORDER BY total_orders DESC
+    """)
+    recs = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return render_template("recommend.html", recs=recs)
+
+@app.route("/review/<int:product_id>")
+def review(product_id):
+    return render_template("review.html", product_id=product_id)
 
 def add_product_to_db(prod_name, prod_description, price, stock_quantity):
     conn = get_connection()
@@ -90,23 +108,33 @@ def add_product_to_db(prod_name, prod_description, price, stock_quantity):
     cursor.close()
     conn.close()
 
-
 def add_review_to_db(rating, comments, user_id, product_id):
-    conn = get_connection()
-    cursor = conn.cursor()
+    conn = None
+    cursor = None
 
-    query = """
-    INSERT INTO Review (rating, comments, user_id, product_id)
-    VALUES (%s, %s, %s, %s)
-    """
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
 
-    values = (rating, comments, user_id, product_id)
-    cursor.execute(query, values)
-    conn.commit()
+        query = """
+        INSERT INTO Review (rating, comments, user_id, product_id)
+        VALUES (%s, %s, %s, %s)
+        """
+        values = (rating, comments, user_id, product_id)
 
-    cursor.close()
-    conn.close()
+        cursor.execute(query, values)
+        conn.commit()
 
+    except mysql.connector.Error as err:
+        print("Database error:", err)
+        if conn:
+            conn.rollback()
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 def add_cart_to_db(cart_id, product_id, quantity):
     conn = get_connection()
@@ -128,32 +156,110 @@ def add_cart_to_db(cart_id, product_id, quantity):
 def add_products():
     prod_name = request.form["prod_name"]
     prod_description = request.form["prod_description"]
-    price = request.form["price"]
-    stock_quantity = request.form["stock_quantity"]
+    price = float(request.form["price"])
+    stock_quantity = int(request.form["stock_quantity"])
 
     add_product_to_db(prod_name, prod_description, price, stock_quantity)
     return redirect("/products")
 
-
 @app.route("/write_review", methods=["POST"])
 def write_review():
-    rating = request.form["rating"]
+    rating = int(request.form["rating"])
     comments = request.form["comments"]
-    user_id = request.form["user_id"]
-    product_id = request.form["product_id"]
+    user_id = int(request.form["user_id"])
+    product_id = int(request.form["product_id"])
 
     add_review_to_db(rating, comments, user_id, product_id)
     return redirect("/customer")
 
-
 @app.route("/add_cart", methods=["POST"])
 def add_cart():
-    cart_id = request.form["cart_id"]
-    product_id = request.form["product_id"]
-    quantity = request.form["quantity"]
+    cart_id = int(request.form["cart_id"])
+    product_id = int(request.form["product_id"])
+    quantity = int(request.form["quantity"])
 
     add_cart_to_db(cart_id, product_id, quantity)
     return redirect("/cart")
+
+@app.route("/place_order", methods=["POST"])
+def place_order():
+    user_id = 1
+    conn = None
+    cursor = None
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT cart_id FROM Cart WHERE user_id = %s", (user_id,))
+        cart = cursor.fetchone()
+
+        if not cart:
+            return redirect("/cart")
+
+        cart_id = cart[0]
+
+        cursor.execute("""
+            SELECT p.product_id, p.prod_name, ci.quantity, p.price
+            FROM Cart_Item ci
+            JOIN Product p ON ci.product_id = p.product_id
+            WHERE ci.cart_id = %s
+        """, (cart_id,))
+        items = cursor.fetchall()
+
+        if not items:
+            return redirect("/cart")
+
+        total = sum(item[2] * item[3] for item in items)
+
+        cursor.execute(
+            "INSERT INTO Order_Info (order_date, total_amount, user_id) VALUES (CURDATE(), %s, %s)",
+            (total, user_id)
+        )
+        order_id = cursor.lastrowid
+
+        for item in items:
+            cursor.execute(
+                "INSERT INTO Order_Item (order_id, product_id, quantity, price_at_purchase) VALUES (%s, %s, %s, %s)",
+                (order_id, item[0], item[2], item[3])
+            )
+
+        cursor.execute("DELETE FROM Cart_Item WHERE cart_id = %s", (cart_id,))
+        conn.commit()
+
+        return redirect(f"/order_confirm/{order_id}")
+
+    except mysql.connector.Error as err:
+        print("Database error:", err)
+        if conn:
+            conn.rollback()
+        return "An error occurred while placing the order."
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+@app.route("/order_confirm/<int:order_id>")
+def order_confirm(order_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT p.prod_name, oi.quantity, oi.price_at_purchase
+        FROM Order_Item oi
+        JOIN Product p ON oi.product_id = p.product_id
+        WHERE oi.order_id = %s
+    """, (order_id,))
+    order_items = cursor.fetchall()
+
+    total = sum(item[1] * item[2] for item in order_items)
+
+    cursor.close()
+    conn.close()
+
+    return render_template("order_html", order_items=order_items, total=round(total, 2))
 
 if __name__ == "__main__":
     app.run(debug=True)
