@@ -4,5 +4,9 @@
     <p>{{ item[0] }} - Quantity: {{ item[1] }}</p>
 {% endfor %}
 
+<form action="/place_order" method="POST">
+    <button type="submit">Place Order</button>
+</form>
+
 <a href="/customer">Back</a>
 

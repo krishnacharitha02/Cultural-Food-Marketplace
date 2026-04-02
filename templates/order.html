@@ -1,0 +1,12 @@
+<h1>Order Placed!</h1>
+
+<p>Thank you! Your order has been placed successfully.</p>
+
+<h2>Order Summary</h2>
+{% for item in order_item %}
+    <p>{{ item[0] }} - Quantity: {{ item[1] }} - ${{ item[2]}}</p>
+{% endfor %}
+
+<p><strong>Total: ${{ total }}</strong></p>
+
+<a href="/customer">Back to Dashboard</a>
