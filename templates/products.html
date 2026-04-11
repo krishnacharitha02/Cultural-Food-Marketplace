@@ -2,17 +2,35 @@
 
 <a href="/customer">Back</a>
 
+<form action="/products" method="GET">
+    <select name="dietary">
+        <option value="">All</option>
+        <option value="Vegan">Vegan</option>
+        <option value="Vegetarian">Vegetarian</option>
+        <option value="Halal">Halal</option>
+        <option value="Gluten-Free">Gluten-Free</option>
+    </select>
+    <button type="submit">Filter</button>
+</form>
+
 {% for p in products %}
     <p>{{ p[3] }} - ${{ p[5] }} </p>
 
     <form action="/add_cart" method="POST">
         <input type="hidden" name="product_id" value="{{ p[0] }}">
-        <input type="hidden" name="cart_id" value="1">
         <input type="number" name="quantity" placeholder="Qty">
         <button type="submit">Add to Cart</button>
     </form>
 
-    <a href="/review/{{ p[0] }}">Leave a Review</a><br><br>
+    <a href="/review/{{ p[0] }}">Leave a Review</a><br>
+
+    {% if session.get("role") == "vendor" and session.get("vendor_id") == p[1] %}
+    <form action="/delete_product/{{ p[0] }}" method="POST">
+        <button type="submit">Delete</button>
+    </form>
+    {% endif %}
+
+    <br>
 
 {% endfor %}
 
