@@ -28,7 +28,7 @@ def get_products(dietary_tag=None):
     if dietary_tag:
         query = """
         SELECT DISTINCT p.*
-        FROM PRoduct p
+        FROM Product p
         JOIN Product_Dietary pd ON p.product_id = pd.product_id
         JOIN Dietary d ON pd.tag_id = d.tag_id
         WHERE d.tag_name = %s
