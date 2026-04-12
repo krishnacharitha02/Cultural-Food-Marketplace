@@ -1,36 +1,62 @@
-<h1>Products</h1>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Products</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
 
-<a href="/customer">Back</a>
+<div class="topbar">
+    <a href="/" class="logo">🍽 Cultural Food Market 🍽</a>
+    <div class="nav-links">
+        {% if session.get('role') == 'vendor' %}
+            <a href="/vendor">Dashboard</a>
+        {% else %}
+            <a href="/customer">Dashboard</a>
+        {% endif %}
+        <a href="/cart">Cart</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
 
-<form action="/products" method="GET">
-    <select name="dietary">
-        <option value="">All</option>
-        <option value="Vegan">Vegan</option>
-        <option value="Vegetarian">Vegetarian</option>
-        <option value="Halal">Halal</option>
-        <option value="Gluten-Free">Gluten-Free</option>
-    </select>
-    <button type="submit">Filter</button>
-</form>
+<div class="container">
+    <h1>Browse Products</h1>
 
-{% for p in products %}
-    <p>{{ p[3] }} - ${{ p[5] }} </p>
-
-    <form action="/add_cart" method="POST">
-        <input type="hidden" name="product_id" value="{{ p[0] }}">
-        <input type="number" name="quantity" placeholder="Qty">
-        <button type="submit">Add to Cart</button>
+    <form action="/products" method="GET" style="margin-bottom: 24px; display: flex; gap: 10px; align-items: center;">
+        <select name="dietary" style="width: auto; margin-bottom: 0;">
+            <option value="">All</option>
+            <option value="Vegan">Vegan</option>
+            <option value="Vegetarian">Vegetarian</option>
+            <option value="Halal">Halal</option>
+            <option value="Gluten-Free">Gluten-Free</option>
+        </select>
+        <button type="submit" class="btn">Filter</button>
     </form>
 
-    <a href="/review/{{ p[0] }}">Leave a Review</a><br>
+    <div class="product-grid">
+    {% for p in products %}
+        <div class="food-card">
+            <div class="prod-name">{{ p[3] }}</div>
+            <div class="prod-desc">{{ p[4] }}</div>
+            <div class="prod-price">${{ p[5] }}</div>
 
-    {% if session.get("role") == "vendor" and session.get("vendor_id") == p[1] %}
-    <form action="/delete_product/{{ p[0] }}" method="POST">
-        <button type="submit">Delete</button>
-    </form>
-    {% endif %}
+            <form action="/add_cart" method="POST" style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
+                <input type="hidden" name="product_id" value="{{ p[0] }}">
+                <input type="number" name="quantity" placeholder="Qty" min="1" style="width: 70px; margin-bottom: 0;">
+                <button type="submit" class="btn">Add to Cart</button>
+            </form>
 
-    <br>
+            <a href="/review/{{ p[0] }}" style="font-size: 13px;">Leave a Review</a>
 
-{% endfor %}
+            {% if session.get("role") == "vendor" and session.get("vendor_id") == p[1] %}
+            <form action="/delete_product/{{ p[0] }}" method="POST" style="margin-top: 10px;">
+                <button type="submit" class="btn btn-danger" style="font-size: 12px; padding: 6px 12px;">Delete</button>
+            </form>
+            {% endif %}
+        </div>
+    {% endfor %}
+    </div>
+</div>
 
+</body>
+</html>

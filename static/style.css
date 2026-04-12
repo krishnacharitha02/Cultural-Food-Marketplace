@@ -1,0 +1,156 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Georgia', serif;
+    background-color: #fdf6ee;
+    color: #2c1a0e;
+    min-height: 100vh;
+}
+
+.topbar {
+    background: #b5451b;
+    padding: 14px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.topbar .logo {
+    color: #fff;
+    font-size: 20px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-decoration: none;
+}
+.topbar .nav-links {
+    display: flex;
+    gap: 16px;
+}
+.topbar .nav-links a {
+    color: #fde8d8;
+    font-size: 14px;
+    text-decoration: none;
+    font-family: Arial, sans-serif;
+}
+.topbar .nav-links a:hover { color: #fff; }
+
+.hero {
+    background: #f2e0c8;
+    padding: 48px 28px;
+    text-align: center;
+    border-bottom: 2px solid #e0c4a0;
+}
+.hero h1 { font-size: 34px; color: #7a2e0b; margin-bottom: 10px; }
+.hero p { color: #8b5e3c; font-family: Arial, sans-serif; font-size: 15px; }
+
+.container {
+    max-width: 860px;
+    margin: 40px auto;
+    padding: 0 24px;
+}
+
+h1 { font-size: 28px; color: #7a2e0b; margin-bottom: 20px; }
+h2 { font-size: 20px; color: #7a2e0b; margin: 24px 0 14px; }
+
+a { color: #b5451b; text-decoration: none; font-family: Arial, sans-serif; }
+a:hover { text-decoration: underline; }
+
+.btn {
+    display: inline-block;
+    padding: 9px 18px;
+    background: #b5451b;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    text-decoration: none;
+}
+.btn:hover { background: #8f3415; text-decoration: none; }
+.btn-secondary { background: #6b4c35; }
+.btn-secondary:hover { background: #4e3525; }
+.btn-danger { background: #a32d2d; }
+.btn-danger:hover { background: #791f1f; }
+
+label {
+    font-size: 13px;
+    color: #8b5e3c;
+    display: block;
+    margin-bottom: 4px;
+    font-family: Arial, sans-serif;
+}
+input, select, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #e0c4a0;
+    border-radius: 6px;
+    font-size: 14px;
+    margin-bottom: 14px;
+    background: #fffaf5;
+    font-family: Arial, sans-serif;
+    color: #2c1a0e;
+}
+input:focus, select:focus, textarea:focus {
+    outline: 2px solid #b5451b;
+    border-color: #b5451b;
+}
+
+.card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e8d5bc;
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.food-card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e8d5bc;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+.food-card .prod-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: #2c1a0e;
+    margin-bottom: 4px;
+}
+.food-card .prod-desc {
+    font-size: 13px;
+    color: #8b5e3c;
+    font-family: Arial, sans-serif;
+    margin-bottom: 10px;
+}
+.food-card .prod-price {
+    font-size: 18px;
+    font-weight: bold;
+    color: #b5451b;
+    margin-bottom: 12px;
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 20px;
+}
+
+.tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    background: #fde8d8;
+    color: #7a2e0b;
+    font-family: Arial, sans-serif;
+    margin-right: 4px;
+    margin-bottom: 8px;
+}
+
+.nav { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+
+hr {
+    border: none;
+    border-top: 1.5px solid #e8d5bc;
+    margin: 28px 0;
+}

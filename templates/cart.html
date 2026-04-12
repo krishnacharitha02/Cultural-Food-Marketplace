@@ -1,12 +1,40 @@
-<h1>Your Cart</h1>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Your Cart</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
 
-{% for item in cart %}
-    <p>{{ item[0] }} - Quantity: {{ item[1] }}</p>
-{% endfor %}
+<div class="topbar">
+    <a href="/" class="logo">🍽 Cultural Food Market 🍽</a>
+    <div class="nav-links">
+        <a href="/customer">Dashboard</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
 
-<form action="/place_order" method="POST">
-    <button type="submit">Place Order</button>
-</form>
+<div class="container">
+    <h1>Your Cart</h1>
 
-<a href="/customer">Back</a>
+    {% if cart %}
+        {% for item in cart %}
+        <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-family: Arial, sans-serif;">{{ item[0] }}</span>
+            <span style="color: #8b5e3c; font-family: Arial, sans-serif;">Qty: {{ item[1] }}</span>
+        </div>
+        {% endfor %}
+        <form action="/place_order" method="POST" style="margin-top: 16px;">
+            <button type="submit" class="btn">Place Order</button>
+        </form>
+    {% else %}
+        <p style="font-family: Arial, sans-serif; color: #8b5e3c;">Your cart is empty.</p>
+    {% endif %}
 
+    <div style="margin-top: 20px;">
+        <a href="/customer">Back to Dashboard</a>
+    </div>
+</div>
+
+</body>
+</html>

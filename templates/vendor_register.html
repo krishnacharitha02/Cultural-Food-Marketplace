@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vendor Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="topbar">
+    <a href="/" class="logo">🍽 Cultural Food Market 🍽</a>
+</div>
+
+<div class="container" style="max-width: 420px;">
+    <h1>Vendor Registration</h1>
+    <div class="card">
+        <form action="/register_vendor" method="POST">
+            <label>Business Name</label>
+            <input type="text" name="business_name" placeholder="Your business name" required>
+            <label>Cuisine Type</label>
+            <select name="cuisine_type_id">
+                <option value="1">Indian</option>
+                <option value="2">Korean</option>
+                <option value="3">Italian</option>
+                <option value="4">Mexican</option>
+            </select>
+            <label>Location</label>
+            <input type="text" name="location" placeholder="City or area" required>
+            <label>Phone</label>
+            <input type="text" name="contact_info_phone" placeholder="Phone number" required>
+            <label>Email</label>
+            <input type="email" name="contact_info_email" placeholder="business@email.com" required>
+            <label>Password</label>
+            <input type="password" name="vendor_password" placeholder="Password" required>
+            <button type="submit" class="btn" style="width: 100%;">Register</button>
+        </form>
+    </div>
+    <p style="text-align: center; font-family: Arial, sans-serif; font-size: 14px; margin-top: 12px;">
+        Already registered? <a href="/vendor_login">Login here</a>
+    </p>
+</div>
+
+</body>
+</html>

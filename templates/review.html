@@ -1,15 +1,32 @@
-<h1>Leave a Review</h1>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Leave a Review</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
 
-<form action="/write_review" method="POST">
-    <input type="hidden" name="product_id" value="{{ product_id}}">
+<div class="topbar">
+    <a href="/" class="logo">🍽 Cultural Food Market 🍽</a>
+</div>
 
-    <label>Rating (1-5):</label><br>
-    <input type="number" name="rating" min="1" max="5" placeholder="1 to 5"><br><br>
+<div class="container" style="max-width: 500px;">
+    <h1>Leave a Review</h1>
+    <div class="card">
+        <form action="/write_review" method="POST">
+            <input type="hidden" name="product_id" value="{{ product_id }}">
+            <input type="hidden" name="user_id" value="{{ session['user_id'] }}">
+            <label>Rating (1–5)</label>
+            <input type="number" name="rating" min="1" max="5" placeholder="1 to 5" required>
+            <label>Comment</label>
+            <textarea name="comments" rows="4" placeholder="Write your review here..."></textarea>
+            <button type="submit" class="btn">Submit Review</button>
+        </form>
+    </div>
+    <div style="margin-top: 12px;">
+        <a href="/products">Back to Products</a>
+    </div>
+</div>
 
-    <label>Comment:</label>
-    <textarea name="comments" placeholder="Write your review here..."></textarea><br>
-<br>
-    <button type="submit">Submit Review</button>
-</form>
-
-<a href="/products">Back</a>
+</body>
+</html>

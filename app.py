@@ -8,7 +8,7 @@ def get_connection():
     return mysql.connector.connect(
         host="127.0.0.1",
         user="root",
-        passwd="USG26@ohcwy11",
+        passwd="TeensDatabase-02",
         database="cultural_food_marketplace"
     )
 
@@ -67,22 +67,37 @@ def home():
 @app.route("/products")
 def products():
     dietary_tag = request.args.get("dietary")
-    products = get_products()
+    products = get_products(dietary_tag)
     return render_template("products.html", products=products)
 
 @app.route("/cart")
 def cart():
-    user_id = 1
+    if "user_id" not in session:
+        return redirect("/login")
+    user_id = session["user_id"]
     cart = get_cart(user_id)
     return render_template("cart.html", cart=cart)
 
 @app.route("/customer")
 def customer():
+    if "user_id" not in session:
+        return redirect("/login")
     return render_template("customer.html")
 
 @app.route("/vendor")
 def vendor():
-    return render_template("vendor.html")
+    if "vendor_id" not in session:
+        return redirect("/vendor_login")
+    
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM Cuisine_Type")
+    cuisines = cursor.fetchall()
+    cursor.execute("SELECT * FROM Dietary")
+    dietary_tags = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return render_template("vendor.html", cuisines=cuisines, dietary_tags=dietary_tags)
 
 @app.route("/recommend")
 def recommend():
@@ -102,6 +117,8 @@ def recommend():
 
 @app.route("/review/<int:product_id>")
 def review(product_id):
+    if "user_id" not in session:
+        return redirect("/login")
     return render_template("review.html", product_id=product_id)
 
 def add_product_to_db(vendor_id, cuisine_type_id, prod_name, prod_description, price, stock_quantity):
@@ -117,9 +134,10 @@ def add_product_to_db(vendor_id, cuisine_type_id, prod_name, prod_description, p
     values = (vendor_id, cuisine_type_id, prod_name, prod_description, price, True, stock_quantity, "Added from website")
     cursor.execute(query, values)
     conn.commit()
-
+    product_id = cursor.lastrowid
     cursor.close()
     conn.close()
+    return product_id
 
 def add_review_to_db(rating, comments, user_id, product_id):
     conn = None
@@ -175,8 +193,9 @@ def add_products():
     price = request.form["price"]
     stock_quantity = request.form["stock_quantity"]
     cuisine_type_id = request.form["cuisine_type_id"]
+    dietary_ids = request.form.getlist("dietary_tags")
 
-    add_product_to_db(
+    product_id = add_product_to_db(
         session["vendor_id"],
         cuisine_type_id,
         prod_name,
@@ -184,6 +203,15 @@ def add_products():
         price,
         stock_quantity
     )
+
+    if dietary_ids:
+        conn = get_connection()
+        cursor= conn.cursor()
+        for tag_id in dietary_ids:
+            cursor.execute("INSERT INTO Product_Dietary (product_id, tag_id) VALUES (%s, %s)", (product_id, tag_id))
+        conn.commit()
+        cursor.close()
+        conn.close()
     return redirect("/products")
 
 @app.route("/write_review", methods=["POST"])
@@ -298,9 +326,6 @@ def order_confirm(order_id):
 
     return render_template("order.html", order_items=order_items, total=round(total, 2))
 
-if __name__ == "__main__":
-    app.run(debug=True)
-
 @app.route("/register")
 def register():
     return render_template("register.html")
@@ -367,6 +392,7 @@ def login_user():
     
 @app.route("/logout")
 def logout():
+    session.clear()
     return redirect("/")
 
 @app.route("/vendor_register")
@@ -470,3 +496,34 @@ def delete_review(review_id):
 
     return redirect("/customer")
 
+@app.route("/add_cusine", methods=["POST"])
+def add_cuisine():
+    if "vendor_id" not in session:
+        return redirect("/vendor_login")
+    cuisine_name = request.form["cuisine_name"]
+    region = request.form["region"]
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO Cuisine_Type (cuisine_name, region) VALUES (%s, %s)", (cuisine_name, region))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return redirect("/vendor")
+
+@app.route("/add_dietary", methods=["POST"])
+def add_dietary():
+    if "vendor_id" not in session:
+        return redirect("/vendor_login")
+
+    tag_name = request.form["tag_name"]
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO Dietary (tag_name) VALUES (%s)", (tag_name,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return redirect("/vendor")
+
+if __name__ == "__main__":
+    app.run(debug=True)

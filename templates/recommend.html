@@ -1,7 +1,31 @@
-<h1>Recommend Products</h1>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Recommendations</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
 
-{% for r in recs %}
-    <p>{{ r[0] }} (Popularity: {{ r[1] }})</p>
-{% endfor %}
+<div class="topbar">
+    <a href="/" class="logo">🍽 Cultural Food Market 🍽</a>
+    <div class="nav-links">
+        <a href="/customer">Dashboard</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
 
-<a href="/customer">Back</a>
+<div class="container">
+    <h1>Top Products</h1>
+    {% for r in recs %}
+    <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-family: Arial, sans-serif;">{{ r[0] }}</span>
+        <span class="tag">{{ r[1] }} orders</span>
+    </div>
+    {% endfor %}
+    <div style="margin-top: 20px;">
+        <a href="/customer">Back to Dashboard</a>
+    </div>
+</div>
+
+</body>
+</html>

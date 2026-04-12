@@ -47,7 +47,7 @@ def get_trending_products(cursor):
 conn = mysql.connector.connect(
     host="127.0.0.1",
     user="root",
-    passwd="USG26@ohcwy11",
+    passwd="TeensDatabase-02",
     database="cultural_food_marketplace"
 )
 

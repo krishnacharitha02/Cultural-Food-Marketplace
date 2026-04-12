@@ -1,7 +1,28 @@
-<h1>Customer Dashboard</h1>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customer Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
 
-<a href="/products">Browse Products</a><br><br>
-<a href="/cart">View Cart</a><br><br>
-<a href="/recommend">Recommendations</a><br><br>
+<div class="topbar">
+    <a href="/" class="logo">🍽 Cultural Food Market 🍽</a>
+    <div class="nav-links">
+        <a href="/cart">Cart</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
 
-<a href="/">Back</a>
+<div class="container">
+    <h1>Welcome, {{ session.get('user_name', 'Customer') }}!</h1>
+    <div class="nav">
+        <a href="/products" class="btn">Browse Products</a>
+        <a href="/cart" class="btn">View Cart</a>
+        <a href="/recommend" class="btn btn-secondary">Recommendations</a>
+        <a href="/logout" class="btn btn-secondary">Logout</a>
+    </div>
+</div>
+
+</body>
+</html>

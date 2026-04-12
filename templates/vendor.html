@@ -1,26 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vendor Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
 
-<h1>Vendor Dashboard</h1>
+<div class="topbar">
+    <a href="/" class="logo">🍽 Cultural Food Market 🍽</a>
+    <div class="nav-links">
+        <a href="/products">Products</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
 
-<p>Manage your products here!</p>
+<div class="container">
+    <h1>Vendor Dashboard</h1>
+    <p style="font-family: Arial, sans-serif; color: #ad632b; margin-bottom: 20px;">Welcome, {{ session.get('vendor_name', 'Vendor') }}!</p>
 
-<a href="/products">View Your Products</a><br><br>
-<a href="/">Back</a>
+    <h2>Add a Product</h2>
+    <div class="card">
+        <form action="/add_products" method="POST">
+            <label>Product Name</label>
+            <input type="text" name="prod_name" placeholder="Product name" required>
+            <label>Description</label>
+            <input type="text" name="prod_description" placeholder="Description">
+            <label>Price</label>
+            <input type="number" step="0.01" name="price" placeholder="0.00" required>
+            <label>Stock Quantity</label>
+            <input type="number" name="stock_quantity" placeholder="Qty" required>
+            <label>Cuisine Type</label>
+            <select name="cuisine_type_id">
+                {% for c in cuisines %}
+                <option value="{{ c[0] }}">{{ c[1] }}</option>
+                {% endfor %}
+            </select>
+            <label>Dietary Tags</label>
+            {% for d in dietary_tags %}
+            <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                <input type="checkbox" name="dietary_tags" value="{{ d[0] }}" style="width: auto; margin-bottom: 0;">
+                {{ d[1] }}
+            </label>
+            {% endfor %}
+            <button type="submit" class="btn" style="margin-top: 10px;">Add Product</button>
+        </form>
+    </div>
 
-<!--adding products-->
-<h2>Add Product</h2>
-<form action="/add_products" method="POST">
-    <input type="text" name="prod_name" placeholder="Product Name"><br><br>
-    <input type="text" name="prod_description" placeholder="Description"><br><br>
-    <input type="number" step="0.01" name="price" placeholder="Price"><br><br>
-    <input type="number" name="stock_quantity" placeholder="Stock Quantity"><br><br>
+    <h2>Add New Cuisine Type</h2>
+    <div class="card">
+        <form action="/add_cuisine" method="POST">
+            <label>Cuisine Name</label>
+            <input type="text" name="cuisine_name" placeholder="e.g. Thai" required>
+            <label>Region</label>
+            <input type="text" name="region" placeholder="e.g. Southeast Asia" required>
+            <button type="submit" class="btn">Add Cuisine</button>
+        </form>
+    </div>
 
-    <label>Cuisine Type:</label>
-    <select name="cuisine_type_id">
-        <option value="1">Indian</option>
-        <option value="2">Korean</option>
-        <option value="3">Italian</option>
-        <option value="4">Mexican</option>
-    </select><br><br>
+    <h2>Add New Dietary Tag</h2>
+    <div class="card">
+        <form action="/add_dietary" method="POST">
+            <label>Tag Name</label>
+            <input type="text" name="tag_name" placeholder="e.g. Vegan" required>
+            <button type="submit" class="btn">Add Tag</button>
+        </form>
+    </div>
+</div>
 
-    <button type="submit">Add Product</button>
-</form>
+</body>
+</html>
