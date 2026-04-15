@@ -154,3 +154,18 @@ hr {
     border-top: 1.5px solid #e8d5bc;
     margin: 28px 0;
 }
+
+
+.prod-name-link{
+    font-size: 16px;
+    font-weight: bold;
+    color: #2c1a0e;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.prod-name-link:hover {
+    color: #b5451b;
+    text-decoration: underline;
+}

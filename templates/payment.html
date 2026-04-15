@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="topbar">
+    <a href="/" class="logo">🍽 Cultural Food Market 🍽</a>
+</div>
+
+<div class="container" style="max-width: 500px;">
+    <h1>Payment Details</h1>
+    <div class="card">
+        <form action="/process_payment" method="POST">
+            <input type="hidden" name="order_id" value="{{ order_id }}">
+
+            <label>Cardholder Name</label>
+            <input type="text" placeholder="Jane Doe" required>
+
+            <label>Card Number</label>
+            <input type="text" placeholder="1234 5678 9012 3456" maxlength="19" required>
+
+            <div style="display: flex; gap: 12px;">
+                <div style="flex: 1;">
+                    <label>Expiry Date</label>
+                    <input type="text" placeholder="MM/YY" maxlength="5" required>
+                </div>
+                <div style="flex: 1;">
+                    <label>CVV</label>
+                    <input type="text" placeholder="123" maxlength="3" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn" style="width: 100%; margin-top: 8px;">Pay Now</button>
+        </form>
+    </div>
+
+    <div style="margin-top: 12px; font-size: 13px; color: #888; text-align: center;">
+        🔒 This is a simulated payment — no real transaction occurs.
+    </div>
+</div>
+
+</body>
+</html>

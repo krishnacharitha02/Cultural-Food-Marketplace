@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Leave a Review</title>
+    <title>Reviews</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -10,22 +10,49 @@
     <a href="/" class="logo">🍽 Cultural Food Market 🍽</a>
 </div>
 
-<div class="container" style="max-width: 500px;">
-    <h1>Leave a Review</h1>
+<div class="container" style="max-width: 600px;">
+
+    <h1>Product Reviews</h1>
+
+    <div style="margin-bottom: 32px;">
+        {% if reviews %}
+            {% for r in reviews %}
+            <div class="card" style="margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <strong>{{ r[2] }}</strong>
+                    <span style="color: #f4a300; font-size: 15px;">
+                        {% for i in range(r[0]) %}⭐{% endfor %}
+                        ({{ r[0] }}/5)
+                    </span>
+                </div>
+                <p style="margin: 8px 0 0; color: #555;">{{ r[1] }}</p>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="card" style="color: #888;">No reviews yet for this product. Be the first!</div>
+        {% endif %}
+    </div>
+
+    <h2>Leave a Review</h2>
     <div class="card">
         <form action="/write_review" method="POST">
             <input type="hidden" name="product_id" value="{{ product_id }}">
             <input type="hidden" name="user_id" value="{{ session['user_id'] }}">
+
             <label>Rating (1–5)</label>
             <input type="number" name="rating" min="1" max="5" placeholder="1 to 5" required>
+
             <label>Comment</label>
             <textarea name="comments" rows="4" placeholder="Write your review here..."></textarea>
+
             <button type="submit" class="btn">Submit Review</button>
         </form>
     </div>
-    <div style="margin-top: 12px;">
-        <a href="/products">Back to Products</a>
+
+    <div style="margin-top: 16px;">
+        <a href="/products">← Back to Products</a>
     </div>
+
 </div>
 
 </body>

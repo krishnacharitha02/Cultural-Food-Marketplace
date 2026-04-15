@@ -22,15 +22,26 @@
 <div class="container">
     <h1>Browse Products</h1>
 
-    <form action="/products" method="GET" style="margin-bottom: 24px; display: flex; gap: 10px; align-items: center;">
+    <form action="/products" method="GET" style="margin-bottom: 24px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
         <select name="dietary" style="width: auto; margin-bottom: 0;">
-            <option value="">All</option>
-            <option value="Vegan">Vegan</option>
-            <option value="Vegetarian">Vegetarian</option>
-            <option value="Halal">Halal</option>
-            <option value="Gluten-Free">Gluten-Free</option>
+            <option value="">All Diets</option>
+            <option value="Vegan" {% if request.args.get('dietary') == 'Vegan' %}selected{% endif %}>Vegan</option>
+            <option value="Vegetarian" {% if request.args.get('dietary') == 'Vegetarian' %}selected{% endif %}>Vegetarian</option>
+            <option value="Halal" {% if request.args.get('dietary') == 'Halal' %}selected{% endif %}>Halal</option>
+            <option value="Gluten-Free" {% if request.args.get('dietary') == 'Gluten-Free' %}selected{% endif %}>Gluten-Free</option>
         </select>
+
+        <select name="cuisine" style="width: auto; margin-bottom: 0;">
+            <option value="">All Cuisines</option>
+            {% for c in cuisines %}
+                <option value="{{ c[0] }}" {% if request.args.get('cuisine') == c[0]|string %}selected{% endif %}>
+                    {{ c[1] }}
+                </option>
+            {% endfor %}
+        </select>
+
         <button type="submit" class="btn">Filter</button>
+        <a href="/products" class="btn" style="background: #888;">Clear</a>
     </form>
 
     <div class="product-grid">
@@ -39,6 +50,8 @@
             <div class="prod-name">{{ p[3] }}</div>
             <div class="prod-desc">{{ p[4] }}</div>
             <div class="prod-price">${{ p[5] }}</div>
+            <div style="font-size: 13px; color: #888; margin-bottom: 4px;">By: {{ p[-2] }}</div>
+            <div style="font-size: 13px; color: #888; margin-bottom: 12px;">Cuisine: {{ p[-1] }}</div>
 
             <form action="/add_cart" method="POST" style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
                 <input type="hidden" name="product_id" value="{{ p[0] }}">
@@ -46,7 +59,7 @@
                 <button type="submit" class="btn">Add to Cart</button>
             </form>
 
-            <a href="/review/{{ p[0] }}" style="font-size: 13px;">Leave a Review</a>
+            <a href="/review/{{ p[0] }}" style="font-size: 13px;">View / Leave a Review</a>
 
             {% if session.get("role") == "vendor" and session.get("vendor_id") == p[1] %}
             <form action="/delete_product/{{ p[0] }}" method="POST" style="margin-top: 10px;">
