@@ -18,10 +18,14 @@
     <h1>Your Cart</h1>
 
     {% if cart %}
+        <!-- FIX 4: item[2] is cart_item_id (added to get_cart query in app.py) -->
         {% for item in cart %}
         <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
             <span style="font-family: Arial, sans-serif;">{{ item[0] }}</span>
             <span style="color: #8b5e3c; font-family: Arial, sans-serif;">Qty: {{ item[1] }}</span>
+            <form action="/delete_cart_item/{{ item[2] }}" method="POST" style="margin: 0;">
+                <button type="submit" class="btn" style="background: #c0392b; font-size: 12px; padding: 6px 14px;">🗑 Remove</button>
+            </form>
         </div>
         {% endfor %}
         <form action="/place_order" method="POST" style="margin-top: 16px;">

@@ -9,42 +9,53 @@
 <div class="topbar">
     <a href="/" class="logo">🍽 Cultural Food Market 🍽</a>
     <div class="nav-links">
+        <a href="/vendor">Dashboard</a>
         <a href="/products">View Products</a>
         <a href="/logout">Logout</a>
     </div>
 </div>
 
 <div class="container">
- 
+
   <div class="welcome-banner" style="--banner-emoji: '🧑‍🍳'">
     <h2>Vendor Dashboard</h2>
     <p>Manage your products, cuisines, and dietary tags.</p>
   </div>
- 
-  
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for msg in messages %}
+        <div style="background:#2ecc71; color:white; padding:12px; border-radius:6px; margin-bottom:15px;">
+          ✅ {{ msg }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+
   <div class="card" style="margin-top: 32px;">
     <h2>Add New Product</h2>
-    <form action="/add_products" method="POST">
- 
+    <form action="/add_product" method="POST">
+
       <label>Product Name</label>
       <input type="text" name="prod_name" required placeholder="e.g. Lamb Tagine">
- 
+
       <label>Description</label>
       <textarea name="prod_description" rows="3" placeholder="Describe your dish..."></textarea>
- 
+
       <label>Price ($)</label>
       <input type="number" name="price" step="0.01" required placeholder="0.00">
- 
+
       <label>Stock Quantity</label>
       <input type="number" name="stock_quantity" required placeholder="e.g. 20">
- 
+
       <label>Cuisine Type</label>
       <select name="cuisine_type_id" required>
         {% for cuisine in cuisines %}
           <option value="{{ cuisine.cuisine_type_id }}">{{ cuisine.cuisine_name }}</option>
         {% endfor %}
       </select>
- 
+
       <label>Dietary Tags</label>
       <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px;">
         {% for tag in dietary_tags %}
@@ -54,38 +65,38 @@
           </label>
         {% endfor %}
       </div>
- 
+
       <button type="submit" class="btn" style="margin-top: 24px;">Add Product</button>
     </form>
   </div>
- 
-  
+
+
   <div class="card">
     <h2>Add Cuisine Type</h2>
     <form action="/add_cuisine" method="POST">
       <label>Cuisine Name</label>
       <input type="text" name="cuisine_name" required placeholder="e.g. Ethiopian">
- 
+
       <label>Region</label>
       <input type="text" name="region" required placeholder="e.g. East Africa">
- 
+
       <button type="submit" class="btn" style="margin-top: 20px;">Add Cuisine</button>
     </form>
   </div>
- 
-  
+
+
   <div class="card">
     <h2>Add Dietary Tag</h2>
     <form action="/add_dietary" method="POST">
       <label>Tag Name</label>
       <input type="text" name="tag_name" required placeholder="e.g. Gluten-Free">
- 
+
       <button type="submit" class="btn" style="margin-top: 20px;">Add Tag</button>
     </form>
   </div>
- 
+
 </div>
- 
- 
+
+
 </body>
 </html>

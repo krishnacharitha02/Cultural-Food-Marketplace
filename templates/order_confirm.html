@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Order Confirmed</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="topbar">
+    <a href="/" class="logo">🍽 Cultural Food Market 🍽</a>
+</div>
+
+<div class="container">
+
+    <h1>🎉 Order Confirmed!</h1>
+
+    <div class="card">
+        <h3>Order Summary</h3>
+
+        <p><b>Total:</b> ${{ order[0] }}</p>
+        <p><b>Date:</b> {{ order[1] }}</p>
+
+        <hr>
+
+        <h3>Items</h3>
+
+        {% for item in order_items %}
+            <p>
+                {{ item[0] }} × {{ item[1] }} — ${{ item[2] }}
+            </p>
+        {% endfor %}
+    </div>
+
+    <a href="/products" class="btn">Continue Shopping</a>
+
+</div>
+
+</body>
+</html>
