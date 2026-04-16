@@ -334,10 +334,8 @@ def place_order():
             VALUES (GETDATE(), ?, ?)
         """, (total, user_id))
 
+        order_id = int(cursor.fetchone()[0])
         conn.commit()
-
-        cursor.execute("SELECT SCOPE_IDENTITY()")
-        order_id = cursor.fetchone()[0]
 
         for item in items:
             cursor.execute("""

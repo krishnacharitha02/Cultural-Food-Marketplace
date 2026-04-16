@@ -1,28 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Customer Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <title>My Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
 <div class="topbar">
-    <a href="/" class="logo">🍽 Cultural Food Market 🍽</a>
-    <div class="nav-links">
-        <a href="/cart">Cart</a>
-        <a href="/logout">Logout</a>
-    </div>
+  <a href="/" class="logo">🍽 Cultural Food Market 🍽</a>
+  <div class="nav-links">
+    <a href="/cart">🛒 Cart</a>
+    <a href="/logout">Logout</a>
+  </div>
 </div>
 
 <div class="container">
-    <h1>Welcome, {{ session.get('user_name', 'Customer') }}!</h1>
-    <div class="nav">
-        <a href="/products" class="btn">Browse Products</a>
-        <a href="/cart" class="btn">View Cart</a>
-        <a href="/recommend" class="btn btn-secondary">Recommendations</a>
-        <a href="/logout" class="btn btn-secondary">Logout</a>
-    </div>
+
+  <div class="welcome-banner">
+    <h2>Welcome {% if session.user_name %}, {{ session.user_name }}{% endif %}! 👋</h2>
+    <p>What are you craving today?</p>
+  </div>
+
+  <div class="dashboard-grid">
+    <a href="/products" class="dash-card">
+      <span class="dash-icon">🍜</span>
+      <span class="dash-label">Browse Products</span>
+    </a>
+    <a href="/cart" class="dash-card">
+      <span class="dash-icon">🛒</span>
+      <span class="dash-label">View Cart</span>
+    </a>
+    <a href="/recommend" class="dash-card">
+      <span class="dash-icon">⭐</span>
+      <span class="dash-label">Recommendations</span>
+    </a>
+    <a href="/logout" class="dash-card">
+      <span class="dash-icon">👋</span>
+      <span class="dash-label">Logout</span>
+    </a>
+  </div>
+
 </div>
+
 
 </body>
 </html>

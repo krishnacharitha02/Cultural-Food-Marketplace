@@ -1,31 +1,56 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Cultural Food Marketplace</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <title>Cultural Food Market</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
+
 <div class="topbar">
-    <a href="/" class="logo">🍽 Cultural Food Market 🍽</a>
+  <a href="/" class="logo">🍽 Cultural Food Market 🍽</a>
 </div>
 
-<div class="hero">
-    <h1>A Marketplace for Authentic Cultural Foods</h1>
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <h1>A Marketplace for <span>Authentic Cultural Food</span></h1>
     <p>Discover handcrafted dishes from your local cultural vendors.</p>
-</div>
-
-<div class="container" style="text-align: center; margin-top: 48px;">
-    <div style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
-        <a href="/login" class="btn" style="width: 220px;">Customer Login</a>
-        <a href="/register" style="font-size: 14px;">New customer? Register here</a>
-
-        <hr style="width: 220px; margin: 8px 0;">
-
-        <a href="/vendor_login" class="btn btn-secondary" style="width: 220px;">Vendor Login</a>
-        <a href="/vendor_register" style="font-size: 14px;">New vendor? Register here</a>
+    <div class="hero-btns">
+      <a href="/register" class="btn">Join as Customer</a>
+      <a href="/vendor_register" class="btn btn-outline">Join as Vendor</a>
     </div>
-</div>
+  </div>
+</section>
+
+
+<section class="features">
+  <div class="features-grid">
+    <div class="feature-card">
+      <span class="icon">🧑‍🍳</span>
+      <h3>Local Vendors</h3>
+      <p>Passionate vendors sharing their culture through food.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">🌏</span>
+      <h3>Global Cuisines</h3>
+      <p>Explore flavors from various cuisines.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">🥗</span>
+      <h3>Dietary Filters</h3>
+      <p>Vegan, halal, gluten-free and more.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">⭐</span>
+      <h3>Community Reviews</h3>
+      <p>Real reviews from real customers.</p>
+    </div>
+  </div>
+</section>
+
 
 </body>
 </html>
