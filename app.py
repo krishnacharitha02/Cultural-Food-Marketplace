@@ -24,38 +24,26 @@ def get_users():
     conn.close()
     return users
 
-def get_products(dietary_tag=None, cuisine_id=None):
+def get_products(dietary_tag=None):
     conn = get_connection()
     cursor = conn.cursor()
 
-    if dietary_tag:
-        query = """
+    base_query = """
         SELECT DISTINCT p.*, v.business_name, ct.cuisine_name
         FROM Product p
         JOIN Vendor v ON p.vendor_id = v.vendor_id
         JOIN Cuisine_Type ct ON p.cuisine_type_id = ct.cuisine_type_id
+    """
+
+    if dietary_tag:
+        query = base_query + """
         JOIN Product_Dietary pd ON p.product_id = pd.product_id
         JOIN Dietary d ON pd.tag_id = d.tag_id
         WHERE d.tag_name = ?
         """
         cursor.execute(query, (dietary_tag,))
-    elif cuisine_id:
-        query = """
-        SELECT DISTINCT p.*, v.business_name, ct.cuisine_name
-        FROM Product p
-        JOIN Vendor v ON p.vendor_id = v.vendor_id
-        JOIN Cuisine_Type ct ON p.cuisine_type_id = ct.cuisine_type_id
-        WHERE p.cuisine_type_id = ?
-        """
-        cursor.execute(query, (cuisine_id,))
     else:
-        query = """
-        SELECT p.*, v.business_name, ct.cuisine_name
-        FROM Product p
-        JOIN Vendor v ON p.vendor_id = v.vendor_id
-        JOIN Cuisine_Type ct ON p.cuisine_type_id = ct.cuisine_type_id
-        """
-        cursor.execute(query)
+        cursor.execute(base_query)
 
     products = cursor.fetchall()
     cursor.close()
@@ -80,43 +68,16 @@ def get_cart(user_id):
     conn.close()
     return cart
 
-def get_reviews(product_id):
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT r.rating, r.comments, u.user_name
-        FROM Review r
-        JOIN Users u ON r.user_id = u.user_id
-        WHERE r.product_id = ?
-    """, (product_id,))
-    reviews = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return reviews
-
 @app.route("/")
 def home():
-    try:
-        users = get_users()
-    except:
-        users = []
+    users = get_users()
     return render_template("index.html", users=users)
 
 @app.route("/products")
 def products():
     dietary_tag = request.args.get("dietary")
-    cuisine_id = request.args.get("cuisine")
-
-    products = get_products(dietary_tag=dietary_tag, cuisine_id=cuisine_id)
-
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM Cuisine_Type")
-    cuisines = cursor.fetchall()
-    cursor.close()
-    conn.close()
-
-    return render_template("products.html", products=products, cuisines=cuisines)
+    products = get_products(dietary_tag)
+    return render_template("products.html", products=products)
 
 @app.route("/cart")
 def cart():
@@ -164,13 +125,11 @@ def recommend():
     conn.close()
     return render_template("recommend.html", recs=recs)
 
-
 @app.route("/review/<int:product_id>")
 def review(product_id):
     if "user_id" not in session:
         return redirect("/login")
-    reviews = get_reviews(product_id)
-    return render_template("review.html", product_id=product_id, reviews=reviews)
+    return render_template("review.html", product_id=product_id)
 
 def add_product_to_db(vendor_id, cuisine_type_id, prod_name, prod_description, price, stock_quantity):
     conn = get_connection()
@@ -179,14 +138,13 @@ def add_product_to_db(vendor_id, cuisine_type_id, prod_name, prod_description, p
     cursor.execute("""
         INSERT INTO Product
         (vendor_id, cuisine_type_id, prod_name, prod_description, price, availability, stock_quantity, storytelling)
+        OUTPUT INSERTED.product_id
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     """, (vendor_id, cuisine_type_id, prod_name, prod_description, price, 1, stock_quantity, "Added from website"))
 
-    conn.commit()  # ← commit the INSERT first
-
-    cursor.execute("SELECT SCOPE_IDENTITY()")  # ← then fetch the new ID
     product_id = cursor.fetchone()[0]
 
+    conn.commit()
     cursor.close()
     conn.close()
     return product_id
@@ -229,31 +187,26 @@ def add_products():
     cuisine_type_id = request.form["cuisine_type_id"]
     dietary_ids = request.form.getlist("dietary_tags")
 
-    # Use a single connection for both the INSERT and SCOPE_IDENTITY
-    conn = get_connection()
-    cursor = conn.cursor()
+    product_id = add_product_to_db(
+        session["vendor_id"],
+        cuisine_type_id,
+        prod_name,
+        prod_description,
+        price,
+        stock_quantity
+    )
 
-    cursor.execute("""
-        INSERT INTO Product
-        (vendor_id, cuisine_type_id, prod_name, prod_description, price, availability, stock_quantity, storytelling)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    """, (session["vendor_id"], cuisine_type_id, prod_name, prod_description, price, 1, stock_quantity, "Added from website"))
-
-    conn.commit()
-
-    cursor.execute("SELECT SCOPE_IDENTITY()")
-    product_id = cursor.fetchone()[0]
-
-    if dietary_ids and product_id:
+    if dietary_ids:
+        conn = get_connection()
+        cursor = conn.cursor()
         for tag_id in dietary_ids:
             cursor.execute(
                 "INSERT INTO Product_Dietary (product_id, tag_id) VALUES (?, ?)",
                 (product_id, tag_id)
             )
         conn.commit()
-
-    cursor.close()
-    conn.close()
+        cursor.close()
+        conn.close()
 
     return redirect("/products")
 
@@ -303,54 +256,74 @@ def add_cart():
 
 @app.route("/place_order", methods=["POST"])
 def place_order():
-    try:
-        user_id = session["user_id"]
-        conn = get_connection()
-        cursor = conn.cursor()
+    if "user_id" not in session:
+        return redirect("/login")
 
-        cursor.execute("SELECT cart_id FROM Cart WHERE user_id = ?", (user_id,))
-        cart = cursor.fetchone()
+    user_id = session["user_id"]
+    conn = get_connection()
+    cursor = conn.cursor()
 
-        if not cart:
-            return redirect("/cart")
+    cursor.execute("SELECT cart_id FROM Cart WHERE user_id = ?", (user_id,))
+    cart = cursor.fetchone()
 
-        cart_id = cart[0]
+    if not cart:
+        cursor.close()
+        conn.close()
+        return redirect("/cart")
 
+    cart_id = cart[0]
+
+    cursor.execute("""
+        SELECT p.product_id, p.prod_name, ci.quantity, p.price
+        FROM Cart_Item ci
+        JOIN Product p ON ci.product_id = p.product_id
+        WHERE ci.cart_id = ?
+    """, (cart_id,))
+    items = cursor.fetchall()
+
+    if not items:
+        cursor.close()
+        conn.close()
+        return redirect("/cart")
+
+    total = sum(item[2] * item[3] for item in items)
+
+    cursor.execute("""
+        INSERT INTO Order_Info (order_date, total_amount, user_id)
+        VALUES (GETDATE(), ?, ?)
+    """, (total, user_id))
+    conn.commit()
+
+    cursor.execute("SELECT SCOPE_IDENTITY()")
+    order_id = cursor.fetchone()[0]
+
+    for item in items:
         cursor.execute("""
-            SELECT p.product_id, ci.quantity, p.price
-            FROM Cart_Item ci
-            JOIN Product p ON ci.product_id = p.product_id
-            WHERE ci.cart_id = ?
-        """, (cart_id,))
-        items = cursor.fetchall()
+            INSERT INTO Order_Item (order_id, product_id, quantity, price_at_purchase)
+            VALUES (?, ?, ?, ?)
+        """, (order_id, item[0], item[2], item[3]))
 
-        if not items:
-            return redirect("/cart")
+    cursor.execute("DELETE FROM Cart_Item WHERE cart_id = ?", (cart_id,))
+    conn.commit()
 
-        total = sum(item[1] * item[2] for item in items)
+    cursor.close()
+    conn.close()
 
-        cursor.execute("""
-            INSERT INTO Order_Info (order_date, total_amount, user_id)
-            VALUES (GETDATE(), ?, ?)
-        """, (total, user_id))
+    return redirect(f"/payment/{order_id}")
 
-        order_id = int(cursor.fetchone()[0])
-        conn.commit()
+@app.route("/payment/<int:order_id>")
+def payment(order_id):
+    if "user_id" not in session:
+        return redirect("/login")
+    return render_template("payment.html", order_id=order_id)
 
-        for item in items:
-            cursor.execute("""
-                INSERT INTO Order_Item (order_id, product_id, quantity, price_at_purchase)
-                VALUES (?, ?, ?, ?)
-            """, (order_id, item[0], item[1], item[2]))
+@app.route("/process_payment", methods=["POST"])
+def process_payment():
+    if "user_id" not in session:
+        return redirect("/login")
 
-        cursor.execute("DELETE FROM Cart_Item WHERE cart_id = ?", (cart_id,))
-        conn.commit()
-
-        return redirect(f"/payment/{order_id}")
-
-    except Exception as e:
-        print("ERROR:", e)
-        return "Order failed - check terminal"
+    order_id = request.form["order_id"]
+    return redirect(f"/order_confirm/{order_id}")
 
 @app.route("/order_confirm/<int:order_id>")
 def order_confirm(order_id):
@@ -550,7 +523,10 @@ def add_cuisine():
 
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO Cuisine_Type (cuisine_name, region) VALUES (?, ?)", (cuisine_name, region))
+    cursor.execute(
+        "INSERT INTO Cuisine_Type (cuisine_name, region) VALUES (?, ?)",
+        (cuisine_name, region)
+    )
     conn.commit()
     cursor.close()
     conn.close()
@@ -572,20 +548,6 @@ def add_dietary():
     conn.close()
 
     return redirect("/vendor")
-
-@app.route("/payment/<int:order_id>")
-def payment(order_id):
-    if "user_id" not in session:
-        return redirect("/login")
-    return render_template("payment.html", order_id=order_id)
-
-@app.route("/process_payment", methods=["POST"])
-def process_payment():
-    order_id = request.form["order_id"]
-    # no real logic — just redirect to confirmation
-    return redirect(f"/order_confirm/{order_id}")
-
-print(app.url_map)
 
 if __name__ == "__main__":
     app.run(debug=True)
