@@ -174,38 +174,34 @@ def products():
         WHERE p.vendor_id = ?
         """
         cursor.execute(query, (vendor_id,))
-
+    
     else:
+        query = """
+        SELECT DISTINCT p.*, v.business_name, ct.cuisine_name
+        FROM Product p
+        JOIN Vendor v ON p.vendor_id = v.vendor_id
+        JOIN Cuisine_Type ct ON p.cuisine_type_id = ct.cuisine_type_id
+        """
+
+        conditions = []
+        params = []
+
         if dietary_tag:
-            query = """
-            SELECT DISTINCT p.*, v.business_name, ct.cuisine_name
-            FROM Product p
-            JOIN Vendor v ON p.vendor_id = v.vendor_id
-            JOIN Cuisine_Type ct ON p.cuisine_type_id = ct.cuisine_type_id
+            query += """
             JOIN Product_Dietary pd ON p.product_id = pd.product_id
             JOIN Dietary d ON pd.tag_id = d.tag_id
-            WHERE d.tag_name = ?
             """
-            cursor.execute(query, (dietary_tag,))
+            conditions.append("d.tag_name = ?")
+            params.append(dietary_tag)
 
-        elif cuisine_id:
-            query = """
-            SELECT DISTINCT p.*, v.business_name, ct.cuisine_name
-            FROM Product p
-            JOIN Vendor v ON p.vendor_id = v.vendor_id
-            JOIN Cuisine_Type ct ON p.cuisine_type_id = ct.cuisine_type_id
-            WHERE p.cuisine_type_id = ?
-            """
-            cursor.execute(query, (cuisine_id,))
+        if cuisine_id:
+            conditions.append("p.cuisine_type_id = ?")
+            params.append(cuisine_id)
 
-        else:
-            query = """
-            SELECT p.*, v.business_name, ct.cuisine_name
-            FROM Product p
-            JOIN Vendor v ON p.vendor_id = v.vendor_id
-            JOIN Cuisine_Type ct ON p.cuisine_type_id = ct.cuisine_type_id
-            """
-            cursor.execute(query)
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+
+        cursor.execute(query, params)
 
     products = cursor.fetchall()
 
