@@ -145,6 +145,30 @@ def add_cart_to_db(cart_id, product_id, quantity):
     cursor.close()
     conn.close()
 
+def get_purchase_history(user_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    query = """
+    SELECT
+        o.order_id,
+        o.order_date,
+        p.name AS product_name,
+        oi.quantity,
+        oi.price
+    FROM [Order] o
+    JOIN OrderItem oi ON o.order_id = oi.order_id
+    JOIN Product p ON oi.product_id = p.product_id
+    WHERE o.user_id = ?
+    ORDER BY o.order_date DESC, o.order_id DESC
+    """
+
+    cursor.execute(query, (user_id,))
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    return rows
 
 @app.route("/")
 def home():
@@ -714,6 +738,15 @@ def process_payment():
     order_id = request.form["order_id"]
     return redirect(f"/order_confirm/{order_id}")
 
+@app.route('/purchase_history')
+def purchase_history():
+    if 'user_id' not in session:
+        return redirect('/login')
+    
+    user_id = session['user_id']
+    history = get_purchase_history(user_id)
+
+    return render_template('purchase_history.html', history=history)
 
 print(app.url_map)
 
