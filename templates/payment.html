@@ -15,8 +15,6 @@
     <div class="card">
         <form action="/process_payment" method="POST">
             <input type="hidden" name="order_id" value="{{ order_id }}">
-
-            <!-- FIX 6: All inputs now have name= attributes so values are included in POST -->
             <label>Cardholder Name</label>
             <input type="text" name="cardholder_name" placeholder="Jane Doe" required>
 

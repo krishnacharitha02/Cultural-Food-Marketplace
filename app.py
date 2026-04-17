@@ -31,34 +31,32 @@ def get_products(dietary_tag=None, cuisine_id=None):
     conn = get_connection()
     cursor = conn.cursor()
 
+    query = """
+    SELECT DISTINCT p.*, v.business_name, ct.cuisine_name
+    FROM Product p
+    JOIN Vendor v ON p.vendor_id = v.vendor_id
+    JOIN Cuisine_Type ct ON p.cuisine_type_id = ct.cuisine_type_id
+    """
+
+    conditions = []
+    params = []
+
     if dietary_tag:
-        query = """
-        SELECT DISTINCT p.*, v.business_name, ct.cuisine_name
-        FROM Product p
-        JOIN Vendor v ON p.vendor_id = v.vendor_id
-        JOIN Cuisine_Type ct ON p.cuisine_type_id = ct.cuisine_type_id
+        query += """
         JOIN Product_Dietary pd ON p.product_id = pd.product_id
         JOIN Dietary d ON pd.tag_id = d.tag_id
-        WHERE d.tag_name = ?
         """
-        cursor.execute(query, (dietary_tag,))
-    elif cuisine_id:
-        query = """
-        SELECT DISTINCT p.*, v.business_name, ct.cuisine_name
-        FROM Product p
-        JOIN Vendor v ON p.vendor_id = v.vendor_id
-        JOIN Cuisine_Type ct ON p.cuisine_type_id = ct.cuisine_type_id
-        WHERE p.cuisine_type_id = ?
-        """
-        cursor.execute(query, (cuisine_id,))
-    else:
-        query = """
-        SELECT p.*, v.business_name, ct.cuisine_name
-        FROM Product p
-        JOIN Vendor v ON p.vendor_id = v.vendor_id
-        JOIN Cuisine_Type ct ON p.cuisine_type_id = ct.cuisine_type_id
-        """
-        cursor.execute(query)
+        conditions.append("d.tag_name = ?")
+        params.append(dietary_tag)
+
+    if cuisine_id:
+        conditions.append("p.cuisine_type_id = ?")
+        params.append(cuisine_id)
+
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
+
+    cursor.execute(query, params)
 
     products = cursor.fetchall()
     cursor.close()
@@ -87,10 +85,11 @@ def get_reviews(product_id):
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT r.rating, r.comments, u.user_name
+        SELECT r.rating, r.comments, u.user_name, r.review_id, r.user_id
         FROM Review r
         JOIN Users u ON r.user_id = u.user_id
         WHERE r.product_id = ?
+        ORDER BY r.review_id DESC
     """, (product_id,))
     reviews = cursor.fetchall()
     cursor.close()
@@ -98,7 +97,7 @@ def get_reviews(product_id):
     return reviews
 
 
-def add_product_to_db(vendor_id, cuisine_type_id, prod_name, prod_description, price, stock_quantity):
+def add_product_to_db(vendor_id, cuisine_type_id, prod_name, prod_description, price, stock_quantity, storytelling):
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -109,7 +108,7 @@ def add_product_to_db(vendor_id, cuisine_type_id, prod_name, prod_description, p
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     """, (vendor_id, cuisine_type_id, prod_name, prod_description, price, 1, stock_quantity, "Added from website"))
 
-    row = cursor.fetchone()   # ✅ THIS WILL WORK
+    row = cursor.fetchone()   
     product_id = row[0] if row else None
 
     conn.commit()
@@ -164,7 +163,6 @@ def products():
     conn = get_connection()
     cursor = conn.cursor()
 
-    # ✅ IF VENDOR → show ONLY their products
     if "vendor_id" in session:
         vendor_id = session["vendor_id"]
 
@@ -178,7 +176,6 @@ def products():
         cursor.execute(query, (vendor_id,))
 
     else:
-        # ✅ CUSTOMER → show all products (with filters)
         if dietary_tag:
             query = """
             SELECT DISTINCT p.*, v.business_name, ct.cuisine_name
@@ -282,7 +279,6 @@ def review(product_id):
     return render_template("review.html", product_id=product_id, reviews=reviews)
 
 
-# FIX 1: Route renamed from /add_products to /add_product to match vendor.html form action
 @app.route("/add_product", methods=["POST"])
 def add_products():
     if "vendor_id" not in session:
@@ -294,6 +290,7 @@ def add_products():
     stock_quantity = request.form["stock_quantity"]
     cuisine_type_id = request.form["cuisine_type_id"]
     dietary_ids = request.form.getlist("dietary_tags")
+    storytelling = request.form.get("storytelling")
 
     product_id = add_product_to_db(
         session["vendor_id"],
@@ -301,7 +298,8 @@ def add_products():
         prod_name,
         prod_description,
         price,
-        stock_quantity
+        stock_quantity,
+        storytelling
     )
 
     if dietary_ids:
@@ -340,37 +338,46 @@ def add_cart():
     if "user_id" not in session:
         return redirect("/login")
 
-    user_id = session["user_id"]
-    product_id = request.form["product_id"]
-    quantity = request.form["quantity"]
+    try:
+        user_id = session["user_id"]
+        product_id = request.form.get("product_id")
+        quantity = request.form.get("quantity")
 
-    conn = get_connection()
-    cursor = conn.cursor()
+        if not quantity or int(quantity) <= 0:
+            return "Please enter a quantity greater than 0", 400
 
-    cursor.execute("SELECT cart_id FROM Cart WHERE user_id = ?", (user_id,))
-    cart = cursor.fetchone()
+        quantity = int(quantity)
 
-    if not cart:
-        cursor.execute("INSERT INTO Cart (user_id) VALUES (?)", (user_id,))
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT cart_id FROM Cart WHERE user_id = ?", (user_id,))
+        cart = cursor.fetchone()
+
+        if not cart:
+            cursor.execute("INSERT INTO Cart (user_id) VALUES (?)", (user_id,))
+            conn.commit()
+            cursor.execute("SELECT SCOPE_IDENTITY()")
+            cart_id = int(cursor.fetchone()[0])
+        else:
+            cart_id = cart[0]
+
+        cursor.execute("""
+            INSERT INTO Cart_Item (cart_id, product_id, quantity)
+            VALUES (?, ?, ?)
+        """, (cart_id, product_id, quantity))
+
         conn.commit()
-        cursor.execute("SELECT SCOPE_IDENTITY()")
-        cart_id = int(cursor.fetchone()[0])
-    else:
-        cart_id = cart[0]
+        cursor.close()
+        conn.close()
 
-    cursor.execute("""
-        INSERT INTO Cart_Item (cart_id, product_id, quantity)
-        VALUES (?, ?, ?)
-    """, (cart_id, product_id, quantity))
+        return redirect("/cart")
 
-    conn.commit()
-    cursor.close()
-    conn.close()
-
-    return redirect("/cart")
+    except Exception as e:
+        print("ADD TO CART ERROR:", e)
+        return "Failed to add item to cart", 500
 
 
-# FIX 4: New route to delete individual cart items
 @app.route("/delete_cart_item/<int:cart_item_id>", methods=["POST"])
 def delete_cart_item(cart_item_id):
     if "user_id" not in session:
@@ -381,7 +388,6 @@ def delete_cart_item(cart_item_id):
     conn = get_connection()
     cursor = conn.cursor()
 
-    # Security check: make sure this cart item actually belongs to this user
     cursor.execute("""
         DELETE FROM Cart_Item
         WHERE cart_item_id = ?
@@ -430,7 +436,6 @@ def place_order():
 
         total = sum(item[1] * item[2] for item in items)
 
-        # ✅ FIXED: safer order insert (NO SCOPE_IDENTITY)
         cursor.execute("""
             INSERT INTO Order_Info (order_date, total_amount, user_id)
             OUTPUT INSERTED.order_id
@@ -439,7 +444,6 @@ def place_order():
 
         order_id = cursor.fetchone()[0]
 
-        # insert order items (clean + safe)
         for item in items:
             product_id = item[0]
             quantity = item[1]
@@ -450,7 +454,6 @@ def place_order():
                 VALUES (?, ?, ?, ?)
             """, (order_id, product_id, quantity, price))
 
-        # clear cart
         cursor.execute("DELETE FROM Cart_Item WHERE cart_id = ?", (cart_id,))
 
         conn.commit()
@@ -621,7 +624,6 @@ def login_vendor():
         return "Invalid vendor login"
 
 
-# FIX 3: Delete Product_Dietary rows first to avoid FK constraint error
 @app.route("/delete_product/<int:product_id>", methods=["POST"])
 def delete_product(product_id):
     if "vendor_id" not in session:
@@ -632,7 +634,6 @@ def delete_product(product_id):
     conn = get_connection()
     cursor = conn.cursor()
 
-    # Must delete child rows in Product_Dietary before deleting the product
     cursor.execute("DELETE FROM Product_Dietary WHERE product_id = ?", (product_id,))
     conn.commit()
 

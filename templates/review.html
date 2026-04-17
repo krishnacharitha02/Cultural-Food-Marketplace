@@ -26,6 +26,14 @@
                     </span>
                 </div>
                 <p style="margin: 8px 0 0; color: #555;">{{ r[1] }}</p>
+
+                {% if session.get("user_id") == r[4] %}
+                <form action="/delete_review/{{ r[3] }}" method="POST" style="margin-top: 8px;">
+                    <button type="submit" class="btn" style="background:#c0392b; font-size: 12px;">
+                        Delete Review
+                    </button>
+                </form>
+                {% endif %}
             </div>
             {% endfor %}
         {% else %}

@@ -29,7 +29,7 @@
         {% endif %}
     </h1>
 
-    <!-- FILTERS -->
+    
     <form action="/products" method="GET"
           style="margin-bottom: 24px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
 
@@ -55,7 +55,7 @@
         <a href="/products" class="btn" style="background: #888;">Clear</a>
     </form>
 
-    <!-- PRODUCT GRID -->
+    
     <div class="product-grid">
     {% for p in products %}
         <div class="product-card">
@@ -74,14 +74,13 @@
 
                 <div class="price">${{ p[5] }}</div>
 
-                <!-- ADD TO CART ONLY FOR CUSTOMERS -->
-                {% if session.get('user_id') %}
+                {% if session.get('user_id') and not session.get('vendor_id') %}
                 <form action="/add_cart" method="POST"
                       style="display: flex; gap: 8px; align-items: center; margin-top: 14px; margin-bottom: 10px;">
 
                     <input type="hidden" name="product_id" value="{{ p[0] }}">
-                    <input type="number" name="quantity" placeholder="Qty" min="1"
-                           style="width: 70px; margin-bottom: 0;">
+                    <input type="number" name="quantity" placeholder="Qty" min="1" required 
+                    style="width: 70px; margin-bottom: 0;">
 
                     <button type="submit" class="btn"
                             style="padding: 10px 18px; font-size: 0.85rem;">
@@ -90,13 +89,13 @@
                 </form>
                 {% endif %}
 
-                {% if session.get('user_id') %}
+                {% if session.get('user_id') and not session.get('vendor_id') %}
                     <a href="/review/{{ p[0] }}" style="font-size: 13px; color: var(--olive-light);">
                         ⭐ View / Leave a Review
                     </a>
                 {% endif %}
 
-                <!-- DELETE ONLY FOR OWNER VENDOR -->
+            
                 {% if session.get("vendor_id") and session.get("vendor_id") == p[1] %}
                 <form action="/delete_product/{{ p[0] }}" method="POST" style="margin-top: 10px;">
                     <button type="submit"

@@ -18,7 +18,7 @@
 <div class="container">
 
   <div class="welcome-banner" style="--banner-emoji: '🧑‍🍳'">
-    <h2>Vendor Dashboard</h2>
+    <h2>Welcome, {{ session.get('business_name') }} </h2>
     <p>Manage your products, cuisines, and dietary tags.</p>
   </div>
 
@@ -41,8 +41,10 @@
       <input type="text" name="prod_name" required placeholder="e.g. Lamb Tagine">
 
       <label>Description</label>
-      <textarea name="prod_description" rows="3" placeholder="Describe your dish..."></textarea>
+      <textarea name="prod_description" rows="3" placeholder="Describe your dish"></textarea>
 
+      <label>Story Behind the Dish</label>
+      <textarea name="storytelling" rows="3" placeholder="Share the cultural story or origin of this dish"></textarea>
       <label>Price ($)</label>
       <input type="number" name="price" step="0.01" required placeholder="0.00">
 
