@@ -153,11 +153,11 @@ def get_purchase_history(user_id):
     SELECT
         o.order_id,
         o.order_date,
-        p.name AS product_name,
+        p.prod_name AS product_name,
         oi.quantity,
-        oi.price
-    FROM [Order] o
-    JOIN OrderItem oi ON o.order_id = oi.order_id
+        oi.price_at_purchase
+    FROM Order_Info o
+    JOIN Order_Item oi ON o.order_id = oi.order_id
     JOIN Product p ON oi.product_id = p.product_id
     WHERE o.user_id = ?
     ORDER BY o.order_date DESC, o.order_id DESC
@@ -442,7 +442,7 @@ def place_order():
         cart_id = cart[0]
 
         cursor.execute("""
-            SELECT p.product_id, ci.quantity, p.price
+            SELECT p.product_id, ci.quantity, p.price, p.stock_quantity
             FROM Cart_Item ci
             JOIN Product p ON ci.product_id = p.product_id
             WHERE ci.cart_id = ?
@@ -453,6 +453,14 @@ def place_order():
             cursor.close()
             conn.close()
             return redirect("/cart")
+
+        for item in items:
+            product_id, quantity, price, stock = item
+
+            if quantity > stock:
+                cursor.close()
+                conn.close()
+                return f"Not enough stock for product ID {product_id}", 400
 
         total = sum(item[1] * item[2] for item in items)
 
@@ -465,14 +473,18 @@ def place_order():
         order_id = cursor.fetchone()[0]
 
         for item in items:
-            product_id = item[0]
-            quantity = item[1]
-            price = item[2]
+            product_id, quantity, price, stock = item
 
             cursor.execute("""
                 INSERT INTO Order_Item (order_id, product_id, quantity, price_at_purchase)
                 VALUES (?, ?, ?, ?)
             """, (order_id, product_id, quantity, price))
+
+            cursor.execute("""
+                UPDATE Product
+                SET stock_quantity = stock_quantity - ?
+                WHERE product_id = ?
+            """, (quantity, product_id))
 
         cursor.execute("DELETE FROM Cart_Item WHERE cart_id = ?", (cart_id,))
 
@@ -746,7 +758,7 @@ def purchase_history():
     user_id = session['user_id']
     history = get_purchase_history(user_id)
 
-    return render_template('purchase_history.html', history=history)
+    return render_template('customer.html', history=history)
 
 print(app.url_map)
 

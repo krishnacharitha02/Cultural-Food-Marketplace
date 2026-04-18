@@ -38,14 +38,27 @@
       <span class="dash-icon">📦</span>
       <span class="dash-label">Purchase History</span>
     </a>
-    <a href="/logout" class="dash-card">
-      <span class="dash-icon">👋</span>
-      <span class="dash-label">Logout</span>
-    </a>
   </div>
 
-</div>
+  {% if history %}
+  <div style="margin-top: 40px;">
+    <h2>📦 Your Purchase History</h2>
 
+    <div class="card">
+      {% for item in history %}
+        <div style="border-bottom: 1px solid #eee; padding: 10px 0;">
+          <p><b>Order ID:</b> {{ item[0] }}</p>
+          <p><b>Date:</b> {{ item[1] }}</p>
+          <p><b>Product:</b> {{ item[2] }}</p>
+          <p><b>Quantity:</b> {{ item[3] }}</p>
+          <p><b>Price:</b> ${{ item[4] }}</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
 
 </body>
 </html>
