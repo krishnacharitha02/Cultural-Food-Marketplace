@@ -542,16 +542,15 @@ def register_user():
 
     cursor.execute("""
         INSERT INTO Users (user_name, email, acc_password, address)
+        OUTPUT INSERTED.user_id
         VALUES (?, ?, ?, ?)
     """, (user_name, email, password, address))
-    conn.commit()
 
-    cursor.execute("SELECT SCOPE_IDENTITY()")
-    user_id = int(cursor.fetchone()[0])
+    user_id = cursor.fetchone()[0]
 
     cursor.execute("INSERT INTO Cart (user_id) VALUES (?)", (user_id,))
-    conn.commit()
 
+    conn.commit()
     cursor.close()
     conn.close()
 
